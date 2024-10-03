@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React, { FC, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
 import { fetchMatches } from "@/features/slices/matches";
 import { setPrediction } from "@/features/slices/predictions";
 import { Match } from "@/utils/api";
 
-const MatchPredictions: React.FC = () => {
+const MatchPredictions: FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { matches, loading, error } = useSelector(
     (state: RootState) => state.matches
@@ -14,11 +14,16 @@ const MatchPredictions: React.FC = () => {
     (state: RootState) => state.predictions.predictions
   );
 
-  useEffect(() => {
-    const seasonId = "1";
-    const weekId = "1";
-    dispatch(fetchMatches({ seasonId, weekId }));
-  }, [dispatch]);
+  const findPrediction = useMemo(() => {
+    const predictionMap = new Map(predictions.map((p) => [p.fixtureId, p]));
+    return (matchId: string) => predictionMap.get(matchId);
+  }, [predictions])
+
+  // useEffect(() => {
+  //   const seasonId = "1";
+  //   const weekId = "1";
+  //   dispatch(fetchMatches({ seasonId, weekId }));
+  // }, [dispatch]);
 
   const handlePrediction = (
     matchId: string,
@@ -29,9 +34,11 @@ const MatchPredictions: React.FC = () => {
 
   const getPredictionButtonClass = (
     matchId: string,
-    buttonPrediction: "HOME_WIN" | "DRAW" | "AWAY_WIN"
+    // buttonPrediction: "HOME_WIN" | "DRAW" | "AWAY_WIN"
+    buttonPrediction: string
   ) => {
-    const prediction = predictions.find((p) => p.fixtureId === matchId);
+    // const prediction = predictions.find((p) => p.fixtureId === matchId);
+    const prediction = findPrediction(matchId);
     return prediction && prediction.prediction === buttonPrediction
       ? "bg-blue-500 text-white"
       : "bg-gray-200";
